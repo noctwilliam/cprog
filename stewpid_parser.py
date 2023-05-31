@@ -1,73 +1,75 @@
-import re
+'''
+Children are taught to add multi-digit numbers from right to left, one digit at a time.
+Many find the “carry” operation, where a 1 is carried from one digit position to the
+next, to be a significant challenge. Your job is to count the number of carry operations
+for each of a set of addition problems so that educators may assess their difficulty.
 
-def parse_equation(equation):
-    # Tokenize the equation using regular expressions
-    tokens = re.findall(r'\d+|\w+|[()+*/-]', equation)
-    return tokens
+This code counts the number of carry operations needed to add two numbers.
+Example: 123 + 456 = 579, 1 + 4 = 5, 2 + 5 = 7, 3 + 6 = 9. No carry operations.
+Example: 555 + 555 = 1110, 5 + 5 = 10 (1 carry operation), 5 + 5 + 1 (from previous operation) = 11 (1 carry operation).
 
-def build_expression_tree(tokens):
-    operators = {'+', '-', '*', '/'}
-    stack = []
-    root = None
+Input
+Each line of input contains two unsigned integers less than 10 digits. The last line of
+input contains “0 0”.
 
-    for token in tokens:
-        if token == '(':
-            stack.append(token)
-        elif token == ')':
-            while stack and stack[-1] != '(':
-                operator = stack.pop()
-                operand2 = stack.pop()
-                operand1 = stack.pop()
-                node = {'type': 'operator', 'value': operator, 'left': operand1, 'right': operand2}
-                stack.append(node)
-            stack.pop()  # Discard '('
-        elif token in operators:
-            stack.append(token)
+123 456
+555 555
+123 594
+0 0
+
+Output
+For each line of input except the last, compute the number of carry operations that
+result from adding the two numbers and print them in the format shown below.
+
+No carry operation.
+3 carry operations.
+1 carry operation.
+
+'''
+
+def count_carry_operations(num1, num2):
+    carry = 0
+    carry_count = 0
+
+    # Loop through each digit of num1 and num2
+    while num1 > 0 or num2 > 0:
+        # Get the rightmost digit of num1 and num2
+        digit1 = num1 % 10
+        digit2 = num2 % 10
+
+        # Add the digits and the carry
+        sum_digits = digit1 + digit2 + carry
+        if sum_digits >= 10:
+            # If the sum is greater than or equal to 10, there is a carry
+            carry = 1
+            carry_count += 1
         else:
-            node = {'type': 'variable', 'value': token}
-            stack.append(node)
+            # If the sum is less than 10, there is no carry
+            carry = 0
 
-    if stack:
-        root = stack.pop()
+        # Remove the rightmost digit from num1 and num2
+        num1 //= 10
+        num2 //= 10
 
-    return root
+    return carry_count
 
-def evaluate_expression_tree(node, variable_values):
-    if node['type'] == 'variable':
-        return variable_values[node['value']]
+carry_count_output = []
+
+print(1//10)
+
+# Read input until "0 0" is encountered
+while True:
+    num1, num2 = map(int, input().split())
+    if num1 == 0 and num2 == 0:
+        break #break the loop if "0 0" is encountered
+
+    carry_count = count_carry_operations(num1, num2)
+    if carry_count == 0:
+        carry_count_output.append("No carry operation.")
+    elif carry_count == 1:
+        carry_count_output.append("1 carry operation.")
     else:
-        left = evaluate_expression_tree(node['left'], variable_values)
-        right = evaluate_expression_tree(node['right'], variable_values)
-        operator = node['value']
-        
-        if operator == '+':
-            return left + right
-        elif operator == '-':
-            return left - right
-        elif operator == '*':
-            return left * right
-        elif operator == '/':
-            return left / right
+        carry_count_output.append(f"{carry_count} carry operations.")
 
-def solve_equation(equation):
-    tokens = parse_equation(equation)
-    expression_tree = build_expression_tree(tokens)
-
-    variables = set(token for token in tokens if re.match(r'\w+', token))
-    variable_values = {}
-
-    for variable in variables:
-        value = float(input(f"Enter the value for variable {variable}: "))
-        variable_values[variable] = value
-
-    solution = {}
-    for variable in variables:
-        variable_values[variable] = evaluate_expression_tree(expression_tree, variable_values)
-        solution[variable] = variable_values[variable]
-
-    return solution
-
-# Example usage
-equation = "(a + b) * (c - d) = e * f"
-solution = solve_equation(equation)
-print(solution)
+for i in carry_count_output:
+    print(i)
